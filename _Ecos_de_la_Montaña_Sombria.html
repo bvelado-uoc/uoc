@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ecos de la Montaña Sombría — Video Opción B (completo)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --ink:#2b1b0d;
+    --paper:#f8f3e7;
+    --parchment: rgba(255, 252, 240, 0.95);
+    --accent:#8b5a2b;
+    --border:#5a3b1d;
+    --gold:#e3c686;
+  }
+  *{box-sizing:border-box}
+  html, body { height:100%; }
+  body {
+    background-color: var(--paper);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Georgia', serif;
+    color: var(--ink);
+    background-image: url('fondo.png');
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    min-height:100vh;
+  }
+
+  #game {
+    max-width: 780px;
+    margin: 60px auto;
+    background: var(--parchment);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.35);
+    position: relative;
+  }
+  .scene-media{
+    margin-bottom:20px;
+  }
+  /* Vídeo de escenas dentro del recuadro principal */
+  video.scene-video{
+    width:100%;
+    height:auto;
+    border-radius:10px;
+    display:block;
+    object-fit:fill;
+  }
+  img.scene-img {
+    border-radius: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    height: auto;
+    display:block;
+    object-fit: cover;
+  }
+  h1, h2 { text-align: center; color: #42210b; margin: 6px 0 14px 0; }
+  p { line-height: 1.6; font-size: 1.05rem; }
+  .choice {
+    display: block;
+    background-color: var(--gold);
+    border: 2px solid var(--border);
+    color: var(--ink);
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 8px;
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .choice:hover { filter: brightness(0.96); }
+  footer { text-align:center; margin-top:18px; font-size:0.9rem; color:var(--border);}
+
+  /* ====== Panels ====== */
+  .panel{
+    width:320px;
+    background:linear-gradient(#fffef8,#f5efe0);
+    border:3px solid var(--border);
+    border-radius:12px;
+    box-shadow:0 12px 40px rgba(0,0,0,.35);
+    overflow:hidden;
+  }
+  .panel-header{
+    display:flex; align-items:center; justify-content:center;
+    padding:10px 12px; background:var(--gold); border-bottom:2px solid var(--border);
+  }
+  .panel-title{ font-size:1rem; margin:0; font-weight:700; color:var(--ink); }
+
+  /* ====== Right dock (Dados) ====== */
+  #diceWidget{
+    position:fixed; right:16px; top:96px;
+  }
+  .dice-body{ padding:12px 14px; }
+  .dice-row{ display:flex;justify-content:center;gap:14px;margin:10px 0; }
+  .die {
+    width:72px;height:72px;background:#fff;border:2px solid var(--border);
+    border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-size:2rem;font-weight:700;color:var(--ink);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+  .dice-readout{ text-align:center;font-weight:700;margin-top:6px;}
+  .dice-controls{ display:flex;justify-content:center;margin-top:10px;}
+  .btn-primary{
+    background:var(--accent); color:#fff; border:0; border-radius:10px;
+    padding:10px 16px; font-weight:700; cursor:pointer; border:2px solid var(--border);
+  }
+  .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;}
+
+  /* ====== Left dock (Stats + Inventory stacked) ====== */
+  #leftDock{
+    position:fixed; left:16px; top:96px;
+    display:flex; flex-direction:column; gap:12px;
+    z-index: 9999;
+  }
+  #statsWidget .stats-body{ padding:12px 14px; }
+  #statsWidget .grid{
+    display:grid; grid-template-columns: 1fr auto; gap:10px 12px; align-items:center;
+  }
+  #statsWidget label{ font-weight:700; }
+  #statsWidget input[type="number"]{
+    width:110px; padding:8px 10px; border-radius:8px; border:2px solid var(--border);
+    background:#fff; font-weight:700; font-size:1rem; text-align:center;
+  }
+
+  #inventoryWidget .inventory-body{ padding:12px 14px; }
+  #inventoryNotes{
+    width:100%; min-height:160px; resize:vertical; border:2px solid var(--border);
+    border-radius:10px; padding:10px 12px; font-size:1rem; line-height:1.4; background:#fff; color:var(--ink);
+  }
+
+  /* ====== Help button (intro) ====== */
+  #helpBtn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 900;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+    display: none; /* solo visible en la intro o selección de personaje */
+    z-index: 11000;
+  }
+  #helpBtn:hover { filter: brightness(0.96); }
+
+  /* ====== Help overlay (reglas) ====== */
+  #helpOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 12000;
+  }
+  .help-content {
+    max-width: 640px;
+    max-height: 80vh;
+    background: var(--parchment);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 3px solid var(--border);
+    padding: 20px 24px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .help-content h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+  .help-content ul {
+    padding-left: 1.1rem;
+  }
+  .help-content li {
+    margin-bottom: 6px;
+  }
+  #closeHelp {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 900;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+  }
+
+  /* ====== Character avatar overlay ====== */
+  #avatarOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 12200;
+  }
+  .avatar-content {
+    max-width: 480px;
+    max-height: 80vh;
+    background: var(--parchment);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 3px solid var(--border);
+    padding: 20px 24px 24px 24px;
+    overflow-y: auto;
+    position: relative;
+    text-align: center;
+  }
+  #avatarTitle {
+    margin-top: 0;
+    margin-bottom: 6px;
+  }
+  #avatarSubtitle {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    color: var(--border);
+  }
+  #avatarImage {
+    max-width: 260px;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 3px solid var(--border);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+    margin: 6px auto 18px auto;
+    display: block;
+  }
+  #avatarClose {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 900;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+  }
+  #avatarStartBtn {
+    margin-top: 4px;
+  }
+
+  /* ====== Intro video overlay ====== */
+  #introVideoOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 12100;
+  }
+  .intro-video-content {
+    max-width: 900px;
+    width: 90vw;
+    max-height: 70vh; /* ajustado para que quepa en pantalla */
+    background: var(--parchment);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 3px solid var(--border);
+    padding: 20px 24px 24px 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #introVideoTitle {
+    margin: 0 0 6px 0;
+    text-align: center;
+  }
+  #introVideo {
+    width: 100%;
+    max-height: 60vh;   /* el vídeo nunca se sale del recuadro */
+    border-radius: 12px;
+    background: #000;
+    object-fit: contain; /* se ve entero, manteniendo proporción */
+    display:block;
+    margin:0 auto;
+  }
+  #introVideoClose {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 900;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+  }
+  #introVideoSkip {
+    align-self: center;
+    margin-top: 4px;
+  }
+
+  /* ====== Character selection (estilo C) ====== */
+  .char-grid{
+    display:grid;
+    gap:16px;
+    margin:20px 0;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  }
+  .char-card{
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    cursor:pointer;
+    background:#fffaf0;
+    box-shadow:0 6px 16px rgba(0,0,0,0.18);
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+    outline:none;
+  }
+  .char-card h2{
+    margin-top:0;
+    margin-bottom:6px;
+    font-size:1.1rem;
+    text-align:left;
+  }
+  .char-card p{
+    margin:4px 0;
+    font-size:0.95rem;
+    text-align:left;
+  }
+  .char-meta{
+    font-size:0.9rem;
+    font-style:italic;
+    color:var(--border);
+  }
+  .char-card.selected{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139,90,43,0.4);
+    transform: translateY(-2px);
+  }
+  .gender-group{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin:10px 0 4px;
+    justify-content:center;
+  }
+  .gender-btn{
+    flex:1 1 120px;
+    border-radius:999px;
+    border:2px solid var(--border);
+    background:#fffaf0;
+    padding:8px 12px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .gender-btn.selected{
+    background:var(--accent);
+    color:#fff;
+    border-color:var(--border);
+  }
+  .helper-text{
+    font-size:0.95rem;
+    margin-top:4px;
+    color:var(--border);
+    text-align:center;
+  }
+  .choice[disabled],
+  .btn-primary[disabled]{
+    opacity:0.6;
+    cursor:not-allowed;
+  }
+
+  /* Responsive fallback */
+  @media (max-width: 860px){
+    #diceWidget{ right:10px; top:auto; bottom:12px; }
+    #leftDock{ left:10px; top:12px; }
+    .panel{ width:min(92vw,360px); }
+    #game{ margin: 24px auto 160px auto; }
+    .help-content {
+      max-width: 90vw;
+      max-height: 85vh;
+    }
+    .avatar-content {
+      max-width: 90vw;
+      max-height: 85vh;
+    }
+    .intro-video-content {
+      max-width: 90vw;
+      max-height: 70vh; /* también ajustado en móvil/tablet */
+    }
+  }
+
+  #beginAdventure {
+    width: fit-content;
+    margin: 20px auto;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+</style>
+</head>
+<body>
+<div id="game" aria-live="polite">
+  <div id="content"></div>
+  <footer>Ecos de la Montaña Sombría — Proyecto IA para la UOC</footer>
+</div>
+
+<!-- Botón de ayuda (intro y selección de personaje) -->
+<button id="helpBtn" aria-label="Ver resumen de reglas">?</button>
+
+<!-- Overlay de ayuda con resumen de reglas -->
+<div id="helpOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="help-content">
+    <button id="closeHelp" aria-label="Cerrar ayuda">×</button>
+    <h2 id="helpTitle">Reglas del juego</h2>
+    <p>
+      <strong>Ecos de la Montaña Sombría</strong> sigue un sistema de juego inspirado en los libro-juegos clásicos de rol:
+    </p>
+    <ul>
+      <li><strong>Qué necesitas:</strong> lee atentamente la historia y tira los dados cuando sea necesario.</li>
+      <li>
+        <strong>Estadísticas básicas:</strong> tu héroe posee las estadísticas de
+        <strong>Destreza</strong> (daño en combate),
+        <strong>Resistencia</strong> (vida) y
+        <strong>Suerte.</strong> Los valores iniciales se obtienen mediante tres tiradas de dados y se anotan en el cuadro de habilidades.
+      </li>
+      <li>
+        <strong>Combate:</strong> en cada asalto, tiras los dados y sumas tu Destreza; el enemigo hace lo mismo. Quien obtenga el total más alto hiere al otro y le quita <strong>2 puntos</strong> de Resistencia. Quien llegue primero a 0 de Resistencia muere.
+      </li>
+      <li>
+        <strong>Pruebas de Suerte:</strong> puedes “tentar a la suerte” para mejorar tu golpe o reducir el daño recibido. Tira los dados: Si el resultado es <strong>mayor o igual</strong> que tu Suerte actual, eres <strong>Afortunado</strong> (tu golpe inflige el doble de daño, o el daño recibido se reduce a la mitad). Si es <strong>menor</strong>, eres <strong>No Afortunado</strong> (tu golpe inflige la mitad de daño, o el daño recibido se duplica). Cada uso de Suerte reduce tu valor actual en 1 punto, así que úsala con prudencia.
+      </li>
+      <li>
+        <strong>Exploración y decisiones:</strong> la historia avanza mediante elecciones. Cada decisión te lleva a una ruta distinta, con escenas, enemigos, trampas y objetos diferentes.
+      </li>
+      <li>
+        <strong>Equipo y objetos:</strong> puedes conseguir armas, armaduras, pociones u otros objetos especiales. Anótalos en tu inventario: algunos te curan, otros mejoran tus habilidades o te permiten abrir rutas alternativas.
+         </li>
+    </ul>
+    <p>
+        <strong>Recuerda:</strong> esta es una aventura de fantasía. Toma decisiones, tira los dados y acepta que a veces la montaña será implacable. Siempre puedes volver a intentarlo por otro camino.
+    </p>
+  </div>
+</div>
+
+<!-- Overlay de avatar de personaje -->
+<div id="avatarOverlay" role="dialog" aria-modal="true" aria-labelledby="avatarTitle">
+  <div class="avatar-content">
+    <button id="avatarClose" aria-label="Cerrar">×</button>
+    <h2 id="avatarTitle">Tu héroe</h2>
+    <p id="avatarSubtitle">Así es el aventurero que se adentra en la Montaña Sombría.</p>
+    <img id="avatarImage" src="" alt="Avatar del personaje seleccionado">
+    <button id="avatarStartBtn" class="btn-primary">Aceptar</button>
+  </div>
+</div>
+
+<!-- Overlay de vídeo de introducción -->
+<div id="introVideoOverlay" role="dialog" aria-modal="true" aria-labelledby="introVideoTitle">
+  <div class="intro-video-content">
+    <button id="introVideoClose" aria-label="Saltar vídeo y continuar">×</button>
+    <h2 id="introVideoTitle">Introducción</h2>
+    <video id="introVideo" src="montana.mp4" controls playsinline></video>
+    <button id="introVideoSkip" class="btn-primary">Saltar vídeo y continuar</button>
+  </div>
+</div>
+
+<!-- LEFT DOCK: Stats + Inventory (both floating together) -->
+<div id="leftDock" aria-label="Paneles flotantes izquierda">
+  <!-- STATS -->
+  <aside id="statsWidget" class="panel" role="complementary" aria-labelledby="statsTitle">
+    <div class="panel-header"><h2 id="statsTitle" class="panel-title">Estadísticas</h2></div>
+    <div class="stats-body">
+      <div class="grid">
+        <label for="dex">Destreza</label>
+        <input id="dex" type="number" inputmode="numeric" min="0" max="30" step="1" placeholder="—">
+        <label for="sta">Resistencia</label>
+        <input id="sta" type="number" inputmode="numeric" min="0" max="30" step="1" placeholder="—">
+        <label for="luk">Suerte</label>
+        <input id="luk" type="number" inputmode="numeric" min="0" max="30" step="1" placeholder="—">
+      </div>
+    </div>
+  </aside>
+
+  <!-- INVENTARIO -->
+  <aside id="inventoryWidget" class="panel" role="complementary" aria-labelledby="inventoryTitle" aria-describedby="inventoryDesc">
+    <div class="panel-header"><h2 id="inventoryTitle" class="panel-title">Inventario</h2></div>
+    <div class="inventory-body">
+      <p id="inventoryDesc" class="sr-only">Área para anotar objetos encontrados durante la aventura.</p>
+      <textarea id="inventoryNotes" placeholder="Anota aquí los objetos encontrados durante tu aventura"></textarea>
+    </div>
+  </aside>
+</div>
+
+<!-- RIGHT (Dados) -->
+<aside id="diceWidget" class="panel" role="complementary" aria-labelledby="diceTitle" aria-describedby="diceDesc">
+  <div class="panel-header"><h2 id="diceTitle" class="panel-title">Dados</h2></div>
+  <div id="dicePanel" class="dice-body">
+    <p id="diceDesc" class="sr-only">Ventana flotante para lanzar dos dados y ver la suma.</p>
+    <div class="dice-row" aria-live="polite">
+      <div class="die" id="die1">—</div>
+      <div class="die" id="die2">—</div>
+    </div>
+    <p id="diceSum" class="dice-readout">Suma: —</p>
+    <div class="dice-controls">
+      <button class="btn-primary" id="rollBtn">Tirar Dados</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+// ======= Escenas =======
+const scenes = {
+  "intro": {
+    "title": "El Puente de las Sombras",
+    "img": "puente.png",
+    "text": `
+  <p>
+Apenas ha amanecido cuando comienzas tu travesía. A lo lejos, se alza la Montaña Sombría, envuelta en una bruma pálida que oculta sus laderas y hace que parezca flotar entre sombras.
+</p>
+<p>
+Tras días de viaje agotador, alcanzas por fin el Puente de las Sombras, un viejo paso de piedra erosionado por el tiempo que cruza un abismo sin fondo. Cada uno de tus pasos resuena en la roca húmeda, mientras la niebla se extiende a tu alrededor.
+</p>
+<p>
+A mitad del puente, una figura encapuchada emerge entre la neblina, bloqueando tu avance. Sostiene un báculo de cristal negro que palpita con un resplandor tenue.
+</p>
+<p>
+¿Qué quieres hacer?
+</p>
+
+    `,
+    "choices": [
+      {"text": "Hablar con la figura", "next": "hablar"},
+      {"text": "Atacarle sin cruzar con él ni una sola palabra", "next": "combate"},
+      {"text": "Retroceder y buscar otro camino", "next": "retirada"}
+    ]
+  },
+  "hablar": {
+    "title": "",
+    "img": "capucha.png",
+    "text": `
+    <p>
+      La figura aparta la capucha y revela un rostro monstruoso, marcado con símbolos antiguos.
+      </p>
+      <p>
+      <i>"Pocos tienen el valor de llegar hasta aquí",</i> dice en voz baja y grave. <br>
+      </p>
+      <p>
+      ¿Qué decides hacer?
+      </p>
+    `,
+    "choices": [
+      {"text": "Esperar a que el monstruo te de información", "next": "esperar"},
+      {"text": "Atacarle primero", "next": "combate"},
+
+    ]
+  },
+  "esperar": {
+    "title": "",
+    "img": "esperar.png",
+    "text": `
+    <p>
+      La figura te cuenta la historia del malvado <b>brujo Morgoroth</b>: un ser malvado que vive en el interior de la montaña.
+      </p>
+      <p>
+      Te advierte que la única forma de vencerlo es usando los poderes que esconde el báculo en su interior. Al ver que tu alma es pura, decide entregártelo con la esperanza de que logres cumplir con tu destino y acabes con la maldición de la montaña.
+      </p>
+      <p>
+      Agregas el báculo a tu inventario.
+      </p>
+    `,
+    "choices":[
+
+      {"text":"Sigues adelante", "next":"lanzas"}
+    ]
+  },
+  "combate": {
+    "title": "",
+    "img": "combate.png",
+    "text": `
+    <p>
+    Desenvainas tu arma y te preparas para luchar contra: 
+    </p>
+    <p>
+    <b>EL GUARDIÁN DEL PUENTE</b>
+    </p>
+<p>
+DESTREZA 5
+</p>
+<p>
+RESISTENCIA 7
+</p>
+    `,
+    "choices": [
+
+      {"text": "Atraviesas el puente tras vencer a tu enemigo", "next": "lanzas"},
+    ]
+  },
+
+    "retirada": {
+    "title": "",
+    "img": "retirada.png",
+    "text": `
+    <p>
+Intentas retroceder por el puente, pero la niebla se espesa detrás de ti. Una voz resuena en tu cabeza: “Nadie puede escapar de la Montaña Sombría con vida...”.
+</p>
+<p>
+Te quedas atrapado en la bruma para siempre, sin saber si alguna vez podrás encontrar la salida…
+</p>
+    `,
+    "choices": [
+      {"text": "Fin del juego", "next": null}
+    ]
+  },
+  "lanzas": {
+    "title": "",
+    "img": "trampa.png",
+    "text": `
+    <p>
+Tras dejar atrás el puente, llegas a un pasillo estrecho. Todo está muy oscuro por lo que decides caminar despacio. De repente notas como tu pie presiona una losa elevada. Un clic seco resuena. De las paredes emergen lanzas de hueso listas para dispararte.
+</p>
+<p>
+  <b>Prueba tu suerte:   </b>
+  </p>
+  <p>
+Si eres Afortunado → tus reflejos te salvan justo a tiempo y puedes continuar sin sufrir ni un rasguño.
+</p>
+<p>
+Si eres No Afortunado → has logrado sobrevivir, pero una lanza roza tu brazo. Pierdes 2 puntos de Resistencia.
+</p>
+
+    `,
+    "choices": [
+      {"text":"Continúas tu aventura", "next":"fuentes"},
+
+    ]
+  },
+
+
+  "fuentes": {
+    "title": "",
+    "img": "fuentes.png",
+    "text": `
+      <p>
+Después de haber logrado salir con vida, te encuentras en una sala con dos fuentes a los lados.
+Cada una de ellas tiene grabado un símbolo distinto. Pese a que estás sediento, no estás seguro de lo que debes hacer. 
+  </p>
+    <p>
+¿Qué deseas hacer?
+  </p>
+    `,
+    "choices": [
+      {"text": "Beber de la fuente de la luna", "next": "luna"},
+      {"text": "Beber de la fuente del sol", "next": "sol"},
+      {"text": "Continuar sin beber", "next": "sala"},
+    ]
+  },
+    "luna": {
+    "title": "",
+    "img": "luna.png",
+    "text": `
+      <p>
+Tras beber el primer trago de la fuente, notas que te fallan las fuerzas.
+  </p>
+    <p>
+Pierdes 2 puntos de resistencia.
+  </p>
+    `,
+    "choices": [
+      {"text": "Continúas a la siguiente sala", "next": "sala"},
+
+    ]
+  },
+
+    "sol": {
+    "title": "",
+    "img": "sol.png",
+    "text": `
+      <p>
+Calmas tu sed. Notas que cada vez te encuentras mejor.
+  </p>
+    <p>
+Ganas 3 puntos de resistencia.
+  </p>
+    `,
+    "choices": [
+      {"text": "Continúas a la siguiente sala", "next": "sala"},
+
+    ]
+  },
+  "sala": {
+  "title": "",
+  "img": "sala.png",
+  "text": `
+   <p>
+Dejas atrás la sala de las fuentes, y continúas avanzando. Cada vez resuenan más alto los ecos de las voces de los que en su día intentaron llegar hasta ahí.
+  </p>
+    <p>
+
+Al final del corredor, una puerta de piedra se alza ante ti. Cuando te acercas, se abre lentamente por sí sola, liberando un soplo de aire frío que te eriza la piel.
+
+Al otro lado, en una cámara amplia y oscura, distingues la silueta de un hombre sentado en un trono, envuelto en una capa negra, inmóvil, esperándote.
+  </p>
+
+  <p>
+No necesitas preguntarte quién es. Has llegado ante Morgoroth.
+  </p>
+
+  `,
+  "choices": [
+    {"text": "Te preparas para el desafío final", "next": "morgoroth"}
+  ]
+},
+  "morgoroth": {
+    "title": "Morgoroth",
+    "img": "morgoroth.png",
+    "text": `
+    <p>
+Al ponerse en pie, su capa oscura cae hacia atrás revelando un cuerpo alto y esquelético, como si de un no muerto se tratase.
+Cada uno de sus pasos hacia ti hace temblar el suelo. Al aproximarse, alza la cabeza y te dice:
+ </p>
+ <p>
+“Has llegado más lejos que cualquier otro…” susurra con voz profunda. “Pero aquí acaba tu camino.”
+ </p>
+ <p>
+
+Extiende una mano en tu dirección por lo que te das cuenta de que el combate es inevitable.
+
+¿Qué quieres hacer?
+ </p>
+    `,
+    "choices": [
+      {"text": "Atacar con tu arma", "next": "morir"},
+      {"text": "Atacar con el báculo (si posees en tu inventario)", "next": "romper"},
+    ]
+  },
+
+
+  "atacar": {
+    "title": "",
+    "img": "atacar.png",
+    "text": `
+    <p>
+Te preparas para enfrentarte a: 
+</p>
+<p>
+<b>MORGOROTH:</b>
+</p>
+<p>
+DESTREZA 7
+</p>
+<p>
+RESISTENCIA 12
+</p>
+
+    `,
+    "choices": [
+      {"text": "Tras un intenso combate, logras vencerlo", "next": "fin"}
+    ]
+  },
+
+    "morir": {
+    "title": "",
+    "img": "morir.png",
+    "text": `
+
+<p>
+Pese a tus intentos en atacarle, no consigues hacerle el más mínimo daño. 
+</p>
+<p>
+Su contraataque es devastador y acaba con tu vida de un solo golpe...
+</p>
+
+
+    `,
+    "choices": [
+      {"text": "Final del juego", "next": null}
+    ]
+  },
+
+  "romper": {
+    "title": "",
+    "img": "romper.png",
+    "text": `
+    <p>
+El báculo se rompe tras el primer impacto. Piensas que la figura del puente te ha estado engañando durante todo este tiempo. Sin embargo, una luz emerge de su interior haciéndote sentir más fuerte.
+      </p>
+      <p>
+      Ganas: +5 de resistencia, x2 de poder de ataque.
+      </p>
+    `,
+    "choices": [
+      {"text": "Atacar a Morgoroth", "next": "atacar"}
+    ]
+  },
+    "fin": {
+    "title": "",
+    "img": "fin.png",
+    "text": `
+
+¡Felicidades, has vencido al malvado Morgoroth!
+    `,
+    "choices": [
+      {"text": "Final del juego", "next": "final"}
+    ]
+  },
+      "final": {
+    "title": "",
+    "img": "final.png",
+    "text": `
+<p>
+La niebla de la montaña se disipa, liberando al pueblo de la maldición que los sometía.
+</p>
+<p>
+<b>Créditos:</b>
+</p>
+<p>
+Proyecto: Ecos de la Montaña Sombría — Grado en Multimedia (UOC)
+</p>
+<p>
+Autor: Borja Velado Barciela
+</p>
+
+<p>
+Asistencia creativa y técnica (IA): ChatGPT-5 (OpenAI) — narrativa y código, Gemini Nano Banana (Google) — ilustraciones, CapCut — video introducción, Lami AI — efectos de sonido, Amazon Polly Neural — voces y PixVerse — animaciones
+</p>
+
+<p>
+Gracias por adentrarte en la Montaña Sombría.
+</p>
+
+    `,
+    "choices": [
+      {"text": "Final del juego", "next": null}
+    ]
+  },
+
+};
+
+// ======= Datos de personaje =======
+let chosenClass = null;
+let chosenGender = null;
+
+function saveCharacterChoices(){
+  try{
+    if(chosenClass) localStorage.setItem('chosenClass', chosenClass);
+    if(chosenGender) localStorage.setItem('chosenGender', chosenGender);
+  }catch(e){}
+}
+
+function loadCharacterChoices(){
+  try{
+    chosenClass = localStorage.getItem('chosenClass') || null;
+    chosenGender = localStorage.getItem('chosenGender') || null;
+  }catch(e){
+    chosenClass = null;
+    chosenGender = null;
+  }
+}
+
+// ======= Avatar overlay helpers =======
+const avatarOverlay = document.getElementById('avatarOverlay');
+const avatarImg = document.getElementById('avatarImage');
+const avatarStartBtn = document.getElementById('avatarStartBtn');
+const avatarCloseBtn = document.getElementById('avatarClose');
+const avatarTitleEl = document.getElementById('avatarTitle');
+const avatarSubtitleEl = document.getElementById('avatarSubtitle');
+
+function capitalize(str){
+  if(!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getAvatarPath(cls, gender){
+  const g = (gender === 'femenino') ? 'femenino' : 'masculino';
+  switch(cls){
+    case 'guerrero':
+      return `guerrero ${g}.png`;
+    case 'arquero':
+      return `arquero ${g}.png`;
+    case 'mago':
+      return `mago ${g}.png`;
+    default:
+      return '';
+  }
+}
+
+function showAvatarOverlay(){
+  if(!avatarOverlay || !chosenClass || !chosenGender) return;
+  const src = getAvatarPath(chosenClass, chosenGender);
+  if(src){
+    avatarImg.src = src;
+    const clsLabel = capitalize(chosenClass);
+    const genLabel = (chosenGender === 'femenino') ? '' : '';
+    avatarImg.alt = `Avatar de ${clsLabel} ${genLabel}`;
+    avatarTitleEl.textContent = `${clsLabel} ${genLabel}`;
+    avatarSubtitleEl.textContent = 'Este es el héroe con el que te adentrarás en la Montaña Sombría.';
+  } else {
+    avatarImg.removeAttribute('src');
+    avatarImg.alt = 'Avatar del personaje seleccionado';
+  }
+  avatarOverlay.style.display = 'flex';
+}
+
+function hideAvatarOverlay(){
+  if(!avatarOverlay) return;
+  avatarOverlay.style.display = 'none';
+}
+
+// Cerrar avatar al hacer clic fuera
+if (avatarOverlay){
+  avatarOverlay.addEventListener('click', (ev)=>{
+    if(ev.target === avatarOverlay){
+      hideAvatarOverlay();
+    }
+  });
+}
+
+if (avatarCloseBtn){
+  avatarCloseBtn.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    hideAvatarOverlay();
+  });
+}
+
+if (avatarStartBtn){
+  avatarStartBtn.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    hideAvatarOverlay();
+    renderScene("intro");
+  });
+}
+
+// ======= Intro video overlay helpers =======
+const introVideoOverlay = document.getElementById('introVideoOverlay');
+const introVideoEl = document.getElementById('introVideo');
+const introVideoClose = document.getElementById('introVideoClose');
+const introVideoSkip = document.getElementById('introVideoSkip');
+
+function openIntroVideo() {
+  if (!introVideoOverlay || !introVideoEl) {
+    // Si por lo que sea no existe el overlay o el vídeo, seguimos a la selección de personaje
+    renderCharacterSelection();
+    return;
+  }
+  introVideoOverlay.style.display = 'flex';
+  try {
+    introVideoEl.currentTime = 0;
+    introVideoEl.play().catch(()=>{});
+  } catch(e){}
+}
+
+function finishIntroVideo() {
+  if (introVideoOverlay) introVideoOverlay.style.display = 'none';
+  if (introVideoEl) {
+    introVideoEl.pause();
+    introVideoEl.currentTime = 0;
+  }
+  renderCharacterSelection();
+}
+
+// Cerrar al pulsar la X o el botón de saltar
+if (introVideoClose) {
+  introVideoClose.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    finishIntroVideo();
+  });
+}
+if (introVideoSkip) {
+  introVideoSkip.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    finishIntroVideo();
+  });
+}
+
+// Cerrar al hacer clic fuera de la caja
+if (introVideoOverlay) {
+  introVideoOverlay.addEventListener('click', (ev)=>{
+    if (ev.target === introVideoOverlay) {
+      finishIntroVideo();
+    }
+  });
+}
+
+// Al terminar el vídeo, continuar automáticamente
+if (introVideoEl) {
+  introVideoEl.addEventListener('ended', ()=>{
+    finishIntroVideo();
+  });
+}
+
+// ======= Render de escena narrativa =======
+function renderScene(id) {
+  const scene = scenes[id];
+  if (!scene) return;
+  const content = document.getElementById("content");
+  let html = '';
+  html += `<h1>${scene.title}</h1>`;
+  if (scene.img) {
+    html += `
+      <div class="scene-media">
+        <video id="sceneVideo" class="scene-video" muted playsinline style="display:none"></video>
+        <img id="sceneImage" class="scene-img" src="${scene.img}" alt="${scene.title}">
+      </div>`;
+  }
+  html += `<p>${scene.text}</p>`;
+  for (const c of scene.choices) {
+    if (c.next) {
+      html += `<a href="#" class="choice" onclick="renderScene('${c.next}')">${c.text}</a>`;
+    } else {
+      html += `<a href="#" class="choice" onclick="renderScene('intro')">Volver a empezar</a>`;
+    }
+  }
+  content.innerHTML = html;
+  content.querySelectorAll('.choice')[0]?.focus();
+
+  // Gestión de vídeo de la escena: si existe id.mp4 se muestra, si no, se deja la imagen
+  const videoEl = document.getElementById('sceneVideo');
+  const imgEl = document.getElementById('sceneImage');
+  if (videoEl) {
+    const videoSrc = id + ".mp4";
+    videoEl.src = videoSrc;
+    videoEl.currentTime = 0;
+    videoEl.load();
+
+    videoEl.onloadeddata = () => {
+      // Hay vídeo: mostramos vídeo y ocultamos imagen
+      videoEl.style.display = "block";
+      if (imgEl) imgEl.style.display = "none";
+      // Reproducir una sola vez cada vez que entras en la escena
+      videoEl.play().catch(()=>{});
+    };
+    videoEl.onerror = () => {
+      // No hay vídeo: ocultamos vídeo y dejamos la imagen
+      videoEl.style.display = "none";
+      if (imgEl) imgEl.style.display = "block";
+    };
+  }
+
+  // reproducir sonido de la escena cada vez que entras
+  const audioEl = document.getElementById('sceneAudio');
+  if(audioEl){
+    const src = id + ".mp3";
+    audioEl.src = src;
+    audioEl.currentTime = 0;
+    audioEl.play().catch(()=>{});
+  }
+
+  // Ocultamos el botón de ayuda fuera de la intro / selección de personaje
+  const helpBtnLocal = document.getElementById('helpBtn');
+  if (helpBtnLocal) helpBtnLocal.style.display = 'none';
+}
+
+// ======= Pantalla de selección de personaje =======
+function renderCharacterSelection(){
+  const content = document.getElementById("content");
+  loadCharacterChoices();
+
+  content.innerHTML = `
+    <h1>Elección de personaje</h1>
+    <p>
+Antes de adentrarte en la Montaña Sombría, debes decidir qué tipo de héroe eres. Cada clase refleja un estilo de juego distinto y otorga una ventaja inicial.
+    </p>
+    <div class="char-grid">
+      <article class="char-card" data-class="guerrero" tabindex="0">
+        <h2>Guerrero</h2>
+        <p>Entrenado para el combate cuerpo a cuerpo con espada.</p>
+        <p class="char-meta">Ventaja: +5 Resistencia.</p>
+      </article>
+      <article class="char-card" data-class="arquero" tabindex="0">
+        <h2>Arquero</h2>
+        <p>Experto en ataques a distancia y en evitar trampas.</p>
+        <p class="char-meta">Ventaja: +5 Destreza.</p>
+      </article>
+      <article class="char-card" data-class="mago" tabindex="0">
+        <h2>Mago</h2>
+        <p>Estudioso de las artes arcanas, capaz de alterar la suerte.</p>
+        <p class="char-meta">Ventaja: +5 Suerte.</p>
+      </article>
+    </div>
+    <h2>Género del personaje</h2>
+    <div class="gender-group">
+      <button type="button" class="gender-btn" data-gender="masculino">Masculino</button>
+      <button type="button" class="gender-btn" data-gender="femenino">Femenino</button>
+    </div>
+
+    <button type="button" id="beginAdventure" class="choice" disabled>
+      Comenzar aventura
+    </button>
+  `;
+
+  // En la selección mostramos el botón de ayuda
+  const helpBtn = document.getElementById('helpBtn');
+  if (helpBtn) helpBtn.style.display = 'block';
+
+  const cards = content.querySelectorAll('.char-card');
+  const genderButtons = content.querySelectorAll('.gender-btn');
+  const startBtn = document.getElementById('beginAdventure');
+
+  function updateUI(){
+    cards.forEach(card=>{
+      if(card.dataset.class === chosenClass){
+        card.classList.add('selected');
+      }else{
+        card.classList.remove('selected');
+      }
+    });
+    genderButtons.forEach(btn=>{
+      if(btn.dataset.gender === chosenGender){
+        btn.classList.add('selected');
+      }else{
+        btn.classList.remove('selected');
+      }
+    });
+    const ready = !!(chosenClass && chosenGender);
+    if(ready){
+      startBtn.removeAttribute('disabled');
+    }else{
+      startBtn.setAttribute('disabled','disabled');
+    }
+  }
+
+  cards.forEach(card=>{
+    card.addEventListener('click', ()=>{
+      chosenClass = card.dataset.class;
+      saveCharacterChoices();
+      updateUI();
+    });
+    card.addEventListener('keydown', (ev)=>{
+      if(ev.key === 'Enter' || ev.key === ' '){
+        ev.preventDefault();
+        chosenClass = card.dataset.class;
+        saveCharacterChoices();
+        updateUI();
+      }
+    });
+  });
+
+  genderButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      chosenGender = btn.dataset.gender;
+      saveCharacterChoices();
+      updateUI();
+    });
+  });
+
+  startBtn.addEventListener('click', ()=>{
+    if(!(chosenClass && chosenGender)){
+      return;
+    }
+    // Mostramos la ventana flotante con la imagen del personaje
+    showAvatarOverlay();
+  });
+
+  updateUI();
+}
+
+// ======= Pantalla de introducción / lore =======
+function renderLanding() {
+  const content = document.getElementById("content");
+  content.innerHTML = `
+    <h1>Ecos de la Montaña Sombría</h1>
+    <p>
+Durante siglos, la Montaña Sombría ha sido evitada incluso por los guerreros más valientes. Cuentan que en sus entrañas aún resuenan los ecos de los gritos de quienes se atrevieron a adentrarse en sus profundidades… y jamás regresaron.
+    </p>
+    <p>
+Ahora, osas enfrentarte a ella y descubrir los secretos que guarda en su interior. Armado sólo con tu valor y la voluntad de tentar al destino, avanzarás por pasadizos donde acechan criaturas temibles, trampas ocultas y poderes oscuros que nunca debieron despertar.
+    </p>
+    <p>
+Cada elección que tomes podrá salvarte… o condenarte a un final tan oscuro como la montaña misma. Todo depende de ti.
+    </p>
+    <p>
+    ¿Serás capaz de regresar con vida?
+    </p>
+    <a href="#" id="startBtn" class="choice">Continuar</a>
+  `;
+  const btn = document.getElementById("startBtn");
+  if (btn) {
+    btn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      openIntroVideo();
+    });
+    btn.focus();
+  }
+
+  // En la intro mostramos el botón de ayuda
+  const helpBtn = document.getElementById('helpBtn');
+  if (helpBtn) helpBtn.style.display = 'block';
+}
+
+// ======= Dados (2d6) =======
+const die1 = document.getElementById('die1');
+const die2 = document.getElementById('die2');
+const diceSum = document.getElementById('diceSum');
+const rollBtn = document.getElementById('rollBtn');
+
+function rand6(){ return Math.floor(Math.random()*6)+1; }
+function setDice(a=null,b=null){
+  die1.textContent = a ?? '—';
+  die2.textContent = b ?? '—';
+  const sum = (a??0) + (b??0);
+  diceSum.textContent = (a===null && b===null) ? 'Suma: —' : 'Suma: ' + sum;
+}
+function roll2d6(){
+  const a = rand6();
+  const b = rand6();
+  setDice(a,b);
+}
+rollBtn.addEventListener('click', roll2d6);
+
+// ======= INVENTARIO: auto-guardar =======
+const notes = document.getElementById('inventoryNotes');
+function loadNotes(){ try{ notes.value = localStorage.getItem('inventoryNotes') || ''; }catch(e){} }
+function saveNotes(){ try{ localStorage.setItem('inventoryNotes', notes.value); }catch(e){} }
+notes.addEventListener('input', saveNotes);
+
+// ======= Ayuda: abrir/cerrar =======
+const helpOverlay = document.getElementById('helpOverlay');
+const helpBtn = document.getElementById('helpBtn');
+const closeHelpBtn = document.getElementById('closeHelp');
+
+function showHelp(){
+  if (helpOverlay) helpOverlay.style.display = 'flex';
+}
+function hideHelp(){
+  if (helpOverlay) helpOverlay.style.display = 'none';
+}
+
+// Cerrar si se pulsa fuera de la caja
+if (helpOverlay) {
+  helpOverlay.addEventListener('click', (ev)=>{
+    if (ev.target === helpOverlay) {
+      hideHelp();
+    }
+  });
+}
+if (helpBtn) {
+  helpBtn.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    showHelp();
+  });
+}
+if (closeHelpBtn) {
+  closeHelpBtn.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    hideHelp();
+  });
+}
+
+// ======= Init =======
+window.addEventListener('load', () => {
+  renderLanding();
+  setDice(null,null);
+  loadNotes();
+});
+
+// ======= Stats keyboard helpers =======
+['dex','sta','luk'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('keydown', (ev)=>{
+    if(ev.key === '+' || ev.key === '=' ){ el.stepUp(); ev.preventDefault(); }
+    if(ev.key === '-' ){ el.stepDown(); ev.preventDefault(); }
+  });
+});
+</script>
+<audio id="sceneAudio"></audio>
+</body>
+</html>
